@@ -1,5 +1,5 @@
 /**
- * @file mach_to_assm.c
+ * @file consts.h
  * @brief Constants used throughout codebase
  * @author Cameron Hannay
  */
@@ -20,9 +20,10 @@ extern const uint32_t MAX_26_BIT;
 /**
  *@brief The definitions of the op codes, funct codes, instruction types, and the expected arguments for an instruction.
  */
-extern const struct instruction_definition instruction_definitions[53];
-
+extern const struct instruction_definition instruction_definitions[];
+extern const size_t instruction_definition_count;
 /**
  * @brief Array of strings to represent available registers.
  */
 extern const char* registers[32]; 
+

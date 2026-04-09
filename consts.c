@@ -4,7 +4,6 @@
  * @author Cameron Hannay
  */
 #include "include.h"
-
 // TODO: Add in more documentation/comments since Old Jim forgot
 
 const uint32_t UNDEFINED;
@@ -32,6 +31,7 @@ const struct instruction_definition instruction_definitions[] = {
         { RD, RS, RT, EMPTY }   // Registers
     },                          // This would be read as: add $rd, $rs, $rt
 
+
     {
         "ADDI",
         I_TYPE,
@@ -48,29 +48,28 @@ const struct instruction_definition instruction_definitions[] = {
         { RS, RT, IMM, EMPTY }
     },
 
-    //TODO: Fix the bugs in the other instructions to restore functionality
-
+    // Fixed existing instructions
     {
         "AND",
-        I_TYPE,
-        "001000",
+        R_TYPE,
+        "000000",
         "100100",
         { RD, RS, RT, EMPTY }
     },
 
     {
         "ANDI",
-        R_TYPE,
+        I_TYPE,
         "001100",
         NULL,
-        { RS, RT, IMM, EMPTY }
+        { RT, RS, IMM, EMPTY }
     },
 
     {
         "BEQ",
-        R_TYPE,
-        "000000",
+        I_TYPE,
         "000100",
+        NULL,
         { RS, RT, IMM, EMPTY }
     },
 
@@ -79,7 +78,7 @@ const struct instruction_definition instruction_definitions[] = {
         R_TYPE,
         "000000",
         "011010",
-        { RS, EMPTY, EMPTY, EMPTY }
+        { RS, RT, EMPTY, EMPTY }
     },
 
     {
@@ -87,38 +86,38 @@ const struct instruction_definition instruction_definitions[] = {
         I_TYPE,
         "001111",
         NULL,
-        { RS, IMM, EMPTY, EMPTY }
+        { RT, IMM, EMPTY, EMPTY }
     },
 
     {
         "LW",
-        R_TYPE,
+        I_TYPE,
         "100011",
         NULL,
-        { RS, IMM, RT, EMPTY }
+        { RT, IMM, RS, EMPTY }
     },
 
     {
         "MFHI",
         R_TYPE,
         "000000",
-        "010010",
-        { RS, EMPTY, EMPTY, EMPTY }
+        "010000",
+        { RD, EMPTY, EMPTY, EMPTY }
     },
 
     {
         "MFLO",
         R_TYPE,
         "000000",
-        "010000",
-        { RS, EMPTY, EMPTY, EMPTY }
+        "010010",
+        { RD, EMPTY, EMPTY, EMPTY }
     },
 
     {
         "OR",
         R_TYPE,
-        "001101",
         "000000",
+        "100101",
         { RD, RS, RT, EMPTY }
     },
 
@@ -126,25 +125,51 @@ const struct instruction_definition instruction_definitions[] = {
         "SLT",
         R_TYPE,
         "000000",
-        "101011",
-        { RD, RT, RS, EMPTY }
+        "101010",
+        { RD, RS, RT, EMPTY }
     },
 
     {
         "SUB",
         R_TYPE,
-        "100010",
         "000000",
-        { EMPTY, RS, RT, EMPTY }
+        "100010",
+        { RD, RS, RT, EMPTY }
     },
 
     {
         "SW",
         I_TYPE,
-        "100011",
+        "101011",
         NULL,
-        { RS, IMM, RT, EMPTY }
+        { RT, IMM, RS, EMPTY }
+    },
+
+    // New required instructions
+    {
+        "MULT",
+        R_TYPE,
+        "000000",
+        "011000",
+        { RS, RT, EMPTY, EMPTY }
+    },
+
+    {
+        "ORI",
+        I_TYPE,
+        "001101",
+        NULL,
+        { RT, RS, IMM, EMPTY }
+    },
+
+    {
+        "SLTI",
+        I_TYPE,
+        "001010",
+        NULL,
+        { RT, RS, IMM, EMPTY }
     }
-    
-    // TODO: Implement MULT, ORI, and SLTI instructions once bugs are fixed
 };
+
+const size_t instruction_definition_count =
+    sizeof(instruction_definitions) / sizeof(instruction_definitions[0]);
