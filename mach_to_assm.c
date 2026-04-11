@@ -84,6 +84,13 @@ static size_t find_instruction_by_code(uint32_t op_code, uint32_t funct_code, ch
 	size_t ins;
 	bool found = false;
 
+	/* 
+	* FIX:
+	* This loop now uses instruction_definition_count instead of sizeof on the
+	* external instruction table. This ensures the disassembler only scans the
+	* valid entries defined in consts.c and does not rely on an incorrect or
+	* outdated hard-coded array size.
+	*/
 	for (ins = 0; ins < instruction_definition_count; ins++) {
 		if (bin_to_num(instruction_definitions[ins].op_code) != op_code)
 			continue;
