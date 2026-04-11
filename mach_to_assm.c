@@ -84,8 +84,7 @@ static size_t find_instruction_by_code(uint32_t op_code, uint32_t funct_code, ch
 	size_t ins;
 	bool found = false;
 
-	for (ins = 0; ins < sizeof(instruction_definitions)
-			/ sizeof(struct instruction_definition); ins++) {
+	for (ins = 0; ins < instruction_definition_count; ins++) {
 		if (bin_to_num(instruction_definitions[ins].op_code) != op_code)
 			continue;
 

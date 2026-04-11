@@ -83,8 +83,7 @@ static size_t find_instruction_by_name(char *given_name, char **error)
 	size_t ins;
 	bool found = false;
 
-	for (ins = 0; ins < sizeof(instruction_definitions)
-			/ sizeof(struct instruction_definition); ins++) {
+	for (ins = 0; ins < instruction_definition_count; ins++) {
 		if (strcmp(given_name, instruction_definitions[ins].op_name) == 0) {
 			found = true;
 			break;
