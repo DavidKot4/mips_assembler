@@ -4,11 +4,23 @@
  * @author Cameron Hannay
  */
 #include "include.h"
-
 // TODO: Add in more documentation/comments since Old Jim forgot
 
 const uint32_t UNDEFINED;
 
+
+/*
+ * These constants represent the maximum unsigned values that can be stored
+ * in common MIPS instruction field sizes.
+ *
+ * They are mainly used when checking whether a parsed value can fit inside
+ * a given field before encoding the instruction into machine code.
+ *
+ * 5-bit  field max = 2^5  - 1 = 31
+ * 6-bit  field max = 2^6  - 1 = 63
+ * 16-bit field max = 2^16 - 1 = 65535
+ * 26-bit field max = 2^26 - 1 = 67108863
+ */
 const uint32_t MAX_5_BIT = 31;
 const uint32_t MAX_6_BIT = 63;
 const uint32_t MAX_16_BIT = 65535;
@@ -22,8 +34,9 @@ const char* registers[] = {
 };
 
 const struct instruction_definition instruction_definitions[] = {
-    // Three "Golden Standard" Instructions
-    // The ADD instruction shows what each part of the instruction defintion means
+    // Three "Golden Standard" Instructions (ADD, ADDI, and BNE)
+    // These were provided as known examples in the starter code.
+    // They were used as templates when repairing the other instruction definitions and when adding new instructions.
     {
         "ADD",                  // MIPS instruction name
         R_TYPE,                 // Type of instruction (R, I, or J)
@@ -32,54 +45,56 @@ const struct instruction_definition instruction_definitions[] = {
         { RD, RS, RT, EMPTY }   // Registers
     },                          // This would be read as: add $rd, $rs, $rt
 
+
     {
         "ADDI",
         I_TYPE,
         "001000",
-        NULL,
-        { RT, RS, IMM, EMPTY }
+        NULL,                   //I-Type instructions do not have a funct code, so we set this to NULL
+        { RT, RS, IMM, EMPTY }  // addi $rt, $rs, immediate
     },
 
     {
         "BNE",
         I_TYPE,
         "000101",
-        NULL,
-        { RS, RT, IMM, EMPTY }
+        NULL,                   //I-Type instructions do not have a funct code
+        { RS, RT, IMM, EMPTY }  // bne $rs, $rt, offset
     },
 
-    //TODO: Fix the bugs in the other instructions to restore functionality
-
+    // Fixed existing instructions:
+    // The entries below originally contained bugs in type, opcode, funct, and/or operand ordering. 
+    // These were corrected to match real MIPS encodings and expected assembly syntax.
     {
         "AND",
-        I_TYPE,
-        "001000",
-        "100100",
-        { RD, RS, RT, EMPTY }
+        R_TYPE,                 // FIXED: was incorrectly marked as I_TYPE
+        "000000",               // FIXED: R-type AND uses opcode 000000
+        "100100",               
+        { RD, RS, RT, EMPTY }   
     },
 
     {
         "ANDI",
-        R_TYPE,
-        "001100",
-        NULL,
-        { RS, RT, IMM, EMPTY }
+        I_TYPE,                 // FIXED: was incorrectly marked as R_TYPE
+        "001100",               // Correct opcode for andi
+        NULL,                   // FIXED: I-type instructions do not use funct
+        { RT, RS, IMM, EMPTY }  // FIXED: correct operand order
     },
 
     {
         "BEQ",
-        R_TYPE,
-        "000000",
-        "000100",
-        { RS, RT, IMM, EMPTY }
+        I_TYPE,                 // FIXED: was incorrectly marked as R_TYPE
+        "000100",               // FIXED: correct opcode for beq
+        NULL,                   // FIXED: BEQ is I-type, so no funct field
+        { RS, RT, IMM, EMPTY }  // beq $rs, $rt, offset
     },
 
     {
         "DIV",
         R_TYPE,
-        "000000",
-        "011010",
-        { RS, EMPTY, EMPTY, EMPTY }
+        "000000",               // Correct R-type opcode
+        "011010",               // Correct funct for div
+        { RS, RT, EMPTY, EMPTY }/* FIXED: division uses rs and rt only; result goes to HI/LO, not rd */
     },
 
     {
@@ -87,64 +102,93 @@ const struct instruction_definition instruction_definitions[] = {
         I_TYPE,
         "001111",
         NULL,
-        { RS, IMM, EMPTY, EMPTY }
+        { RT, IMM, EMPTY, EMPTY } /* FIXED: operand order is: lui $rt, imm, not rs, imm */
     },
 
     {
         "LW",
-        R_TYPE,
-        "100011",
+        I_TYPE,                 // FIXED: was incorrectly marked as R_TYPE
+        "100011",               // Correct opcode for lw
         NULL,
-        { RS, IMM, RT, EMPTY }
+        { RT, IMM, RS, EMPTY }  /* FIXED: project parser expects operands in
+                                   the order rt, imm, rs
+                                   corresponding to lw $rt, offset($rs) */
     },
 
     {
         "MFHI",
         R_TYPE,
         "000000",
-        "010010",
-        { RS, EMPTY, EMPTY, EMPTY }
+        "010000",               // FIXED: correct funct for mfhi
+        { RD, EMPTY, EMPTY, EMPTY } /* FIXED: mfhi writes to rd only */
     },
 
     {
         "MFLO",
         R_TYPE,
         "000000",
-        "010000",
-        { RS, EMPTY, EMPTY, EMPTY }
+        "010010",               // FIXED: correct funct for mflo
+        { RD, EMPTY, EMPTY, EMPTY } /* FIXED: mflo writes to rd only */
     },
 
     {
         "OR",
         R_TYPE,
-        "001101",
-        "000000",
-        { RD, RS, RT, EMPTY }
+        "000000",               // FIXED: OR is R-type, not immediate OR
+        "100101",               // FIXED: correct funct for OR
+        { RD, RS, RT, EMPTY }   // or $rd, $rs, $rt
     },
 
     {
         "SLT",
         R_TYPE,
         "000000",
-        "101011",
-        { RD, RT, RS, EMPTY }
+        "101010",               // FIXED: correct funct for slt
+        { RD, RS, RT, EMPTY }   // FIXED: corrected operand order
     },
 
     {
         "SUB",
         R_TYPE,
-        "100010",
-        "000000",
-        { EMPTY, RS, RT, EMPTY }
+        "000000",               // FIXED: opcode was incorrectly set to funct
+        "100010",               // FIXED: correct funct for sub
+        { RD, RS, RT, EMPTY }   // FIXED: sub writes result into rd
     },
 
     {
         "SW",
         I_TYPE,
-        "100011",
+        "101011",               // FIXED: correct opcode for sw
         NULL,
-        { RS, IMM, RT, EMPTY }
+        { RT, IMM, RS, EMPTY }  /* FIXED: project parser expects operands in
+                                   the order rt, imm, rs
+                                   corresponding to sw $rt, offset($rs) */
+    },
+
+    // Added Required New Instructions
+    // These were not present in the broken starter version and were added as part of the project requirements.
+    {
+        "MULT",
+        R_TYPE,
+        "000000",
+        "011000",               // funct code for mult
+        { RS, RT, EMPTY, EMPTY }/* mult uses rs and rt only;
+                                   result is stored in HI/LO */
+    },
+
+    {
+        "ORI",
+        I_TYPE,
+        "001101",               // opcode for ori
+        NULL,
+        { RT, RS, IMM, EMPTY }  // ori $rt, $rs, imm
+    },
+
+    {
+        "SLTI",
+        I_TYPE,
+        "001010",               // opcode for slti
+        NULL,
+        { RT, RS, IMM, EMPTY }  // slti $rt, $rs, imm
     }
-    
-    // TODO: Implement MULT, ORI, and SLTI instructions once bugs are fixed
 };
