@@ -69,8 +69,8 @@ const struct instruction_definition instruction_definitions[] = {
         "AND",
         R_TYPE,                 // FIXED: was incorrectly marked as I_TYPE
         "000000",               // FIXED: R-type AND uses opcode 000000
-        "100100",               // FIXED: correct funct for AND
-        { RD, RS, RT, EMPTY }   // and $rd, $rs, $rt
+        "100100",               
+        { RD, RS, RT, EMPTY }   
     },
 
     {
