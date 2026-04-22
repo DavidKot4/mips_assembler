@@ -90,26 +90,59 @@ int main(int argc, char *argv[])
 				}
 				printf("%s\n\n", decompile_result);
 				break;
+
 			case DEBUG:
-				// First get the binary input as uint32_t
+				//get binary input
 				inst_in = strtoul(line, &end, 2);
 
-				/* -------------------------------------------------------------------------
-				* BONUS CHALLENGE: Automated Corrupted Code Inspector
-				* -------------------------------------------------------------------------
-				* Currently, this feature only acknowledges the input. 
-				* To earn extra credit, implement a loop that:
-				* 1. Flips each of the 32 bits of 'inst_in' one by one using an XOR mask.
-				* 2. Attempts to disassemble each flipped version.
-				* 3. Prints out valid MIPS instructions as suggestions.
-				* ------------------------------------------------------------------------- */
-				
 				printf("Broken Binary Received: %s\n", line);
-				printf("Bonus Logic Not Yet Implemented. Returning to Root...\n");
-				int_state = ROOT;
-				
-				break;
+				printf("Checking all 32 single-bit flips for valid MIPS instructions...\n\n");
 
+				int valid_found = 0;
+
+				for (int bit = 0; bit < 32; bit++) {
+					uint32_t flipped_inst = inst_in ^ (1u << bit);
+
+					char* local_error = NULL;
+					struct assm_parse_result flipped_parse_result;
+					char flipped_result[LINE_BUFF_SIZE];
+
+					// Try to disassemble the flipped instruction
+					flipped_parse_result = convert_to_assembly(flipped_inst, &local_error);
+
+					if (local_error != NULL) {
+						continue;
+					}
+
+					// Try to generate assembly text from the parsed instruction
+					generate_assembly(flipped_result, LINE_BUFF_SIZE, flipped_parse_result, &local_error);
+
+					if (local_error != NULL) {
+						continue;
+					}
+
+					valid_found = 1;
+
+					printf("Valid suggestion by flipping bit %d:\n", bit);
+
+					uint32_t temp = flipped_inst;
+					for (int i = 0; i < 32; i++) {
+						if (i % 4 == 0 && i != 0)
+							printf(" ");
+						printf("%d", temp / (1u << 31));
+						temp *= 2;
+					}
+
+					printf("\nAssembly: %s\n\n", flipped_result);
+				}
+
+				if (!valid_found) {
+					printf("No valid MIPS instructions found from any single-bit flip.\n");
+				}
+
+				int_state = ROOT;
+				break;
+			
 			case INACTIVE:
 				if (flags & ARG_REVERSE) {
 					// First convert string hexadecimal to string binary
